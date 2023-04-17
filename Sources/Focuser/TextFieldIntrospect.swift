@@ -34,14 +34,10 @@ public struct FocusModifier<Value: FocusStateCompliant & Hashable>: ViewModifier
                 
                 /// when user taps return we navigate to next responder
                 observer.onReturnTap = {
-                    focusedField = focusedField?.next ?? Value.last
-                }
-
-                /// to show kayboard with `next` or `return`
-                if equals.hashValue == Value.last.hashValue {
-                    tf.returnKeyType = .done
-                } else {
-                    tf.returnKeyType = .next
+                    if let nextField = focusedField?.next {
+                        focusedField = nextField
+                        print("#2 \(nextField)")
+                    }
                 }
                 
                 if focusedField == equals {

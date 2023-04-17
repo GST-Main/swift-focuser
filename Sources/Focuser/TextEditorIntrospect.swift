@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Introspect
 
 public struct FocusModifierTextEditor<Value: FocusStateCompliant & Hashable>: ViewModifier {
     @Binding var focusedField: Value?
@@ -14,7 +15,7 @@ public struct FocusModifierTextEditor<Value: FocusStateCompliant & Hashable>: Vi
     
     public func body(content: Content) -> some View {
         content
-            .introspectTextView { tv in
+            .introspectTextViewPrivate { tv in
                 if focusedField == equals {
                     tv.becomeFirstResponder()
                 }
@@ -22,5 +23,23 @@ public struct FocusModifierTextEditor<Value: FocusStateCompliant & Hashable>: Vi
             .simultaneousGesture(TapGesture().onEnded {
               focusedField = equals
             })
+    }
+}
+
+fileprivate extension View {
+    /// Finds a `TargetView` from a `SwiftUI.View`
+    func introspectPrivate<TargetView: UIView>(
+        selector: @escaping (IntrospectionUIView) -> TargetView?,
+        customize: @escaping (TargetView) -> ()
+    ) -> some View {
+        inject(UIKitIntrospectionView(
+            selector: selector,
+            customize: customize
+        ))
+    }
+    
+    /// Finds a `UITextView` from a `SwiftUI.TextEditor`
+    func introspectTextViewPrivate(customize: @escaping (UITextView) -> ()) -> some View {
+        introspectPrivate(selector: TargetViewSelector.siblingContainingOrAncestorOrAncestorChild, customize: customize)
     }
 }
